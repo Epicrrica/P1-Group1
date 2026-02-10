@@ -1,0 +1,15 @@
+# Environment
+env/
+.env/
+venv/
+.venv/
+.flaskenv
+*.pyc
+*.pyo
+/__pycache__/
+.idea
+.idea/
+.vscode/*
+node_modules
+*.pem
+*-key.pem
