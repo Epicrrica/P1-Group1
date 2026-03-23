@@ -78,6 +78,17 @@ function save_uploaded_product_images(mysqli $conn, int $productId, array $files
 
     $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
     $fileCount = count($files['name']);
+    $existingSortOrder = 0;
+
+    $sortStmt = $conn->prepare("SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order FROM PRODUCT_IMAGE WHERE product_id = ?");
+    if ($sortStmt !== false) {
+        $sortStmt->bind_param("i", $productId);
+        $sortStmt->execute();
+        $sortResult = $sortStmt->get_result();
+        $sortRow = $sortResult->fetch_assoc();
+        $existingSortOrder = ((int) ($sortRow['max_sort_order'] ?? -1)) + 1;
+        $sortStmt->close();
+    }
 
     for ($index = 0; $index < $fileCount; $index++) {
         if (($files['error'][$index] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -107,7 +118,7 @@ function save_uploaded_product_images(mysqli $conn, int $productId, array $files
             continue;
         }
 
-        $sortOrder = count($savedPaths);
+        $sortOrder = $existingSortOrder + count($savedPaths);
         $stmt = $conn->prepare(
             "INSERT INTO PRODUCT_IMAGE (product_id, image_path, sort_order)
              VALUES (?, ?, ?)"
@@ -129,18 +140,18 @@ function save_uploaded_product_images(mysqli $conn, int $productId, array $files
     return [$savedPaths, $errors];
 }
 
-function delete_product_image_by_id(mysqli $conn, int $imageId, string $projectRoot): bool
+function delete_product_image_by_id(mysqli $conn, int $productId, int $imageId, string $projectRoot): bool
 {
     if (!product_images_table_available($conn)) {
         return false;
     }
 
-    $stmt = $conn->prepare("SELECT image_path FROM PRODUCT_IMAGE WHERE image_id = ?");
+    $stmt = $conn->prepare("SELECT image_path FROM PRODUCT_IMAGE WHERE image_id = ? AND product_id = ?");
     if ($stmt === false) {
         return false;
     }
 
-    $stmt->bind_param("i", $imageId);
+    $stmt->bind_param("ii", $imageId, $productId);
     $stmt->execute();
     $result = $stmt->get_result();
     $image = $result->fetch_assoc();
@@ -150,12 +161,12 @@ function delete_product_image_by_id(mysqli $conn, int $imageId, string $projectR
         return false;
     }
 
-    $deleteStmt = $conn->prepare("DELETE FROM PRODUCT_IMAGE WHERE image_id = ?");
+    $deleteStmt = $conn->prepare("DELETE FROM PRODUCT_IMAGE WHERE image_id = ? AND product_id = ?");
     if ($deleteStmt === false) {
         return false;
     }
 
-    $deleteStmt->bind_param("i", $imageId);
+    $deleteStmt->bind_param("ii", $imageId, $productId);
     $deleteStmt->execute();
     $deleteStmt->close();
 

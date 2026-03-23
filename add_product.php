@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $productId = (int) $stmt->insert_id;
         $stmt->close();
 
-        [$savedImages, $uploadErrors] = save_uploaded_product_images(
+        [, $uploadErrors] = save_uploaded_product_images(
             $conn,
             $productId,
             $_FILES['product_images'] ?? [],
@@ -61,7 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = array_merge($errors, $uploadErrors);
         }
 
-        $successMessage = 'Product added successfully.';
+        $successMessage = empty($errors)
+            ? 'Product added successfully.'
+            : 'Product added, but some images could not be uploaded.';
+
         $productName = '';
         $category = '';
         $price = '';
@@ -91,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
                             <h1 class="h2 mb-1">Add Product</h1>
-                            <p class="text-muted mb-0">Create a new listing for your current PRODUCT table.</p>
+                            <p class="text-muted mb-0">Create a new product listing with multiple images.</p>
                         </div>
                         <a href="product_list.php" class="btn btn-outline-secondary">Back to Products</a>
                     </div>

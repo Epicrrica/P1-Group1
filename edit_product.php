@@ -39,7 +39,7 @@ $productImages = get_product_images($conn, $productId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_image_id'])) {
     $imageId = (int) $_POST['delete_image_id'];
-    if (delete_product_image_by_id($conn, $imageId, __DIR__)) {
+    if (delete_product_image_by_id($conn, $productId, $imageId, __DIR__)) {
         header("Location: edit_product.php?id=" . $productId);
         exit;
     }
