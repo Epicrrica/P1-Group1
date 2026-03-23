@@ -1,0 +1,13 @@
+.image-preview-card {
+    overflow: hidden;
+}
+
+.image-preview-thumb {
+    height: 220px;
+    object-fit: cover;
+    background-color: #f8f9fa;
+}
+
+#image-preview-empty {
+    border-style: dashed !important;
+}
