@@ -6,16 +6,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($entered_otp == $_SESSION['otp']) {
         
-        // Success! Log the user in
+        // 1. Success! Log the user in permanently
         $_SESSION['logged_in_user'] = $_SESSION['temp_user'];
         
-        // Clean up all temporary variables
+        // 2. Capture the user type BEFORE we unset the temporary session
+        $role = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'user';
+        
+        // 3. Clean up all temporary variables
         unset($_SESSION['temp_user']);
         unset($_SESSION['temp_contact']);
         unset($_SESSION['two_fa_method']);
         unset($_SESSION['otp']);
+        unset($_SESSION['user_type']); // Clear this so it doesn't linger
         
-        header("Location: index.php");
+        // 4. Re-set the permanent user type for the rest of the site to use
+        $_SESSION['user_role'] = $role;
+
+        // 5. Route the user based on their role
+        if ($role === 'moderator') {
+            header("Location: moderator_dashboard.php");
+        } else {
+            header("Location: index.php");
+        }
         exit();
         
     } else {

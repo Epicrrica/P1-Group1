@@ -31,6 +31,9 @@
             <div class="col-md-5">
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
+                        <div class="text-center mb-3 mt-2">
+                            <span class="bg-warning text-dark px-3 py-2 rounded-3 fs-3 fw-bold shadow-sm">GCE</span>
+                        </div>
                         <h3 class="mb-4 text-center">Login to your account</h3>
                         
                         <form action="process_login.php" method="POST">
