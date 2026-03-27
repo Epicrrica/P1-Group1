@@ -1,6 +1,9 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-semibold" href="index.php">Game Console Exchange</a>
+        <<a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
+            <span class="bg-warning text-dark px-2 py-1 rounded-3 me-2 fs-5 shadow-sm">GCE</span>
+            <span class="text-white tracking-wide">Game Console Exchange</span>
+        </a>
         <button
             class="navbar-toggler"
             type="button"
@@ -23,6 +26,13 @@
                 <li class="nav-item">
                     <a class="nav-link" href="add_product.php">Sell</a>
                 </li>
+                
+                <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'moderator'): ?>
+                <li class="nav-item">
+                    <a class="nav-link text-warning fw-bold" href="moderator_dashboard.php">Mod Dashboard</a>
+                </li>
+                <?php endif; ?>
+
                 <li class="nav-item">
                     <a class="nav-link" href="#">Profile</a>
                 </li>
