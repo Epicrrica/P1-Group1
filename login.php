@@ -11,7 +11,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid px-4">
             <a class="navbar-brand fw-bold" href="index.php">Game Console Exchange</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
@@ -32,19 +32,34 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
                         <h3 class="mb-4 text-center">Login to your account</h3>
+                        
                         <form action="process_login.php" method="POST">
                             <div class="mb-3">
                                 <label for="username" class="form-label text-muted">Username</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
                             </div>
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label for="password" class="form-label text-muted">Password</label>
                                 <input type="password" class="form-control" id="password" name="password" required>
                             </div>
+
+                            <div class="mb-4 p-3 bg-light border rounded">
+                                <label class="form-label text-muted fw-bold mb-2">Send my 6-digit code via:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="two_fa_method" id="methodEmail" value="email" checked>
+                                    <label class="form-check-label" for="methodEmail">Email Address</label>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="radio" name="two_fa_method" id="methodSms" value="sms">
+                                    <label class="form-check-label" for="methodSms">SMS (Text Message)</label>
+                                </div>
+                            </div>
+
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary py-2">Login</button>
                             </div>
                         </form>
+                        
                         <div class="mt-4 text-center">
                             <p class="text-muted">Don't have an account? <a href="register.php" class="text-decoration-none">Register here</a></p>
                         </div>

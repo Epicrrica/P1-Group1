@@ -1,49 +1,56 @@
 <?php
-// 1. Grab the text data submitted from the form
-$username = $_POST['username'];
-$email = $_POST['email'];
-$phone_no = $_POST['phone_no'];
-$password = $_POST['password'];
-$bio = $_POST['bio'];
+session_start();
 
-// 2. Hash the password for security
-$pwd_hashed = password_hash($password, PASSWORD_DEFAULT);
+// 1. Connect local PHP directly to the Live Google Cloud Database
+$servername = "35.212.172.254";       
+$username = "group_login";            
+$password = "group_project123";       // <-- CHANGE THIS TO THE REAL PASSWORD
+$dbname = "project_information_db";   
 
-// 3. Handle the Profile Picture (LONGBLOB method)
-$imgData = NULL; 
-if (isset($_FILES["profile_picture"]) && $_FILES["profile_picture"]["error"] == 0) {
-    // Read the file contents as binary data to store directly in the database
-    $imgData = file_get_contents($_FILES["profile_picture"]["tmp_name"]);
-}
-
-// 4. Connect to the Database
-// This uses the secure ini file method taught in your lab [cite: 524, 559]
-$config = parse_ini_file('/var/www/private/db-config.ini');
-
-if (!$config) {
-    die("Error: Failed to read database config file.");
-}
-
-$conn = new mysqli($config['servername'], $config['username'], $config['password'], "project_information_db");
+$conn = new mysqli($servername, $username, $password, $dbname);
 
 if ($conn->connect_error) {
-    die("Database Connection failed: " . $conn->connect_error);
+    die("Connection failed: " . $conn->connect_error);
 }
 
-// 5. Insert data using Prepared Statements [cite: 548, 580]
-// Notice how the column names here perfectly match your VS Code screenshot
-$stmt = $conn->prepare("INSERT INTO USER (username, user_password_hash, user_email, user_phone_no, user_bio, user_profile_img) VALUES (?, ?, ?, ?, ?, ?)");
+// 2. Process the form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    
+    // Grab text inputs
+    $user = $_POST['username'];
+    $pwd = $_POST['password'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone_no'];
+    $bio = $_POST['bio'];
+    
+    // Hash the password for security
+    $hashed_password = password_hash($pwd, PASSWORD_DEFAULT);
 
-$stmt->bind_param("ssssss", $username, $pwd_hashed, $email, $phone_no, $bio, $imgData);
+    // 3. Process the Profile Image (LONGBLOB)
+    $imgData = "";
+    if (isset($_FILES['profile_img']) && $_FILES['profile_img']['error'] === UPLOAD_ERR_OK) {
+        $imgData = file_get_contents($_FILES['profile_img']['tmp_name']);
+    }
 
-if ($stmt->execute()) {
-    echo "<h1>Registration successful!</h1>";
-    echo "<a href='login.php'>Click here to login</a>";
-} else {
-    echo "Error saving to database: " . $stmt->error;
+    // 4. Insert into the database using the EXACT SQLTools column names
+    $stmt = $conn->prepare("INSERT INTO USER (username, user_password_hash, user_email, user_phone_no, user_bio, user_profile_img) VALUES (?, ?, ?, ?, ?, ?)");
+    
+    // Bind the parameters (6 strings/blobs = "ssssss")
+    $stmt->bind_param("ssssss", $user, $hashed_password, $email, $phone, $bio, $imgData);
+
+    // 5. Execute and respond
+    if ($stmt->execute()) {
+        echo "<div style='text-align: center; margin-top: 50px; font-family: sans-serif;'>";
+        echo "<h1>Registration successful!</h1>";
+        echo "<p>Your account has been created in the live database.</p>";
+        echo "<a href='login.php' style='padding: 10px 20px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px;'>Click here to login</a>";
+        echo "</div>";
+    } else {
+        echo "Error saving to database: " . $stmt->error;
+    }
+
+    $stmt->close();
 }
 
-// 6. Close the connections [cite: 590, 592]
-$stmt->close();
 $conn->close();
 ?>
