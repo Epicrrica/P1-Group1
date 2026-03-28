@@ -1,5 +1,5 @@
 <?php
-// Ensure session is started so we can read login status
+// Ensure session is started so we can read login status securely
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -12,15 +12,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="bg-warning text-dark px-2 py-1 rounded-3 me-2 fs-5 shadow-sm">GCE</span>
             <span class="text-white tracking-wide">Game Console Exchange</span>
         </a>
-        <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNavbar"
-            aria-controls="mainNavbar"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-        >
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNavbar">
@@ -31,9 +23,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <li class="nav-item">
                     <a class="nav-link <?= in_array($current_page, ['product_list.php', 'product_detail.php', 'edit_product.php']) ? 'active' : '' ?>" href="product_list.php">Products</a>
                 </li>
+                
+                <?php if (isset($_SESSION['logged_in_user'])): ?>
                 <li class="nav-item">
                     <a class="nav-link <?= ($current_page == 'add_product.php') ? 'active' : '' ?>" href="add_product.php">Sell</a>
                 </li>
+                <?php endif; ?>
                 
                 <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'moderator'): ?>
                 <li class="nav-item">
@@ -55,7 +50,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     </li>
                 <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= ($current_page == 'login.php' || $current_page == 'register.php') ? 'active' : '' ?>" href="login.php">Login</a>
+                        <a class="nav-link <?= in_array($current_page, ['login.php', 'register.php', 'verify_2fa.php']) ? 'active' : '' ?>" href="login.php">Login</a>
                     </li>
                 <?php endif; ?>
             </ul>

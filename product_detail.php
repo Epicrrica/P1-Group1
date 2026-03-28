@@ -1,4 +1,5 @@
 <?php
+session_start();
 include "inc/db.inc.php";
 include "inc/product_images.inc.php";
 
@@ -8,15 +9,9 @@ if ($productId <= 0) {
     die('Invalid product ID.');
 }
 
-$stmt = $conn->prepare(
-    "SELECT product_id, product_name, category, price, product_desc
-     FROM PRODUCT
-     WHERE product_id = ?"
-);
-
-if ($stmt === false) {
-    die('Query preparation failed: ' . $conn->error);
-}
+// Fetch product details including the seller's username
+$stmt = $conn->prepare("SELECT * FROM PRODUCT WHERE product_id = ?");
+if ($stmt === false) die('Query preparation failed: ' . $conn->error);
 
 $stmt->bind_param("i", $productId);
 $stmt->execute();
@@ -28,6 +23,14 @@ if (!$product) {
 }
 
 $productImages = get_product_images($conn, $productId);
+
+// Permissions Logic
+$currentUser = $_SESSION['logged_in_user'] ?? null;
+$userRole = $_SESSION['user_role'] ?? 'user';
+$sellerUsername = $product['seller_username'] ?? ''; // Safely grab the poster
+
+$canEdit = ($currentUser && $currentUser === $sellerUsername);
+$canDelete = ($currentUser && ($currentUser === $sellerUsername || $userRole === 'moderator'));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,10 +38,7 @@ $productImages = get_product_images($conn, $productId);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($product['product_name']) ?></title>
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
     <?php include "inc/navbar.inc.php"; ?>
@@ -49,8 +49,8 @@ $productImages = get_product_images($conn, $productId);
                 <div class="col-lg-8">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <h1 class="h2 mb-1"><?= htmlspecialchars($product['product_name']) ?></h1>
-                            <p class="text-muted mb-0">Product details page</p>
+                            <h1 class="h2 mb-1 fw-bold"><?= htmlspecialchars($product['product_name']) ?></h1>
+                            <p class="text-muted mb-0">Posted by: <span class="fw-semibold"><?= htmlspecialchars($sellerUsername) ?></span></p>
                         </div>
                         <a href="product_list.php" class="btn btn-outline-secondary">Back to Products</a>
                     </div>
@@ -90,13 +90,24 @@ $productImages = get_product_images($conn, $productId);
                                     </p>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="bg-light rounded p-3 h-100">
-                                        <p class="mb-2"><strong>Category:</strong> <?= htmlspecialchars($product['category']) ?></p>
-                                        <p class="mb-3"><strong>Price:</strong> $<?= number_format((float) $product['price'], 2) ?></p>
-                                        <div class="d-grid gap-2">
-                                            <a href="edit_product.php?id=<?= $product['product_id'] ?>" class="btn btn-primary">Edit Product</a>
-                                            <a href="delete_product.php?id=<?= $product['product_id'] ?>" class="btn btn-outline-danger">Delete Product</a>
-                                        </div>
+                                    <div class="bg-light rounded p-4 h-100 border">
+                                        <p class="mb-2 text-muted">Category:</p>
+                                        <p class="fs-5 fw-semibold"><?= htmlspecialchars($product['category']) ?></p>
+                                        <hr>
+                                        <p class="mb-2 text-muted">Price:</p>
+                                        <p class="fs-3 fw-bold text-success">$<?= number_format((float) $product['price'], 2) ?></p>
+                                        
+                                        <?php if ($canEdit || $canDelete): ?>
+                                            <div class="d-grid gap-2 mt-4 pt-3 border-top">
+                                                <?php if ($canEdit): ?>
+                                                    <a href="edit_product.php?id=<?= $product['product_id'] ?>" class="btn btn-primary fw-semibold">Edit Product</a>
+                                                <?php endif; ?>
+                                                <?php if ($canDelete): ?>
+                                                    <a href="delete_product.php?id=<?= $product['product_id'] ?>" class="btn btn-outline-danger fw-semibold">Delete Product</a>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+
                                     </div>
                                 </div>
                             </div>

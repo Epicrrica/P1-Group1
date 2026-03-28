@@ -1,4 +1,11 @@
 <?php
+session_start();
+// Lock out unauthenticated users securely
+if (!isset($_SESSION['logged_in_user'])) {
+    header("Location: login.php");
+    exit();
+}
+
 include "inc/db.inc.php";
 include "inc/product_images.inc.php";
 
@@ -11,64 +18,43 @@ $price = trim($_POST['price'] ?? '');
 $productDesc = trim($_POST['product_desc'] ?? '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($productName === '') {
-        $errors[] = 'Product name is required.';
-    }
-
-    if ($category === '') {
-        $errors[] = 'Category is required.';
-    }
-
+    if ($productName === '') $errors[] = 'Product name is required.';
+    if ($category === '') $errors[] = 'Category is required.';
     if ($price === '' || !is_numeric($price) || (float) $price < 0) {
         $errors[] = 'Price must be a valid positive number.';
     }
 
     if (empty($errors)) {
         $productImg = '';
+        $sellerUsername = $_SESSION['logged_in_user']; // Capture the active user
 
+        // Included seller_username in the INSERT statement
         $stmt = $conn->prepare(
-            "INSERT INTO PRODUCT (product_name, category, price, product_desc, product_img)
-             VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO PRODUCT (product_name, category, price, product_desc, product_img, seller_username)
+             VALUES (?, ?, ?, ?, ?, ?)"
         );
 
-        if ($stmt === false) {
-            die('Insert preparation failed: ' . $conn->error);
-        }
+        if ($stmt === false) die('Insert preparation failed: ' . $conn->error);
 
         $priceValue = (float) $price;
-        $stmt->bind_param(
-            "ssdss",
-            $productName,
-            $category,
-            $priceValue,
-            $productDesc,
-            $productImg
-        );
-
+        $stmt->bind_param("ssdsss", $productName, $category, $priceValue, $productDesc, $productImg, $sellerUsername);
         $stmt->execute();
+        
         $productId = (int) $stmt->insert_id;
         $stmt->close();
 
         [, $uploadErrors] = save_uploaded_product_images(
-            $conn,
-            $productId,
-            $_FILES['product_images'] ?? [],
-            __DIR__ . '/uploads/products',
-            'uploads/products'
+            $conn, $productId, $_FILES['product_images'] ?? [],
+            __DIR__ . '/uploads/products', 'uploads/products'
         );
 
-        if (!empty($uploadErrors)) {
-            $errors = array_merge($errors, $uploadErrors);
-        }
+        if (!empty($uploadErrors)) $errors = array_merge($errors, $uploadErrors);
 
         $successMessage = empty($errors)
             ? 'Product added successfully.'
             : 'Product added, but some images could not be uploaded.';
 
-        $productName = '';
-        $category = '';
-        $price = '';
-        $productDesc = '';
+        $productName = ''; $category = ''; $price = ''; $productDesc = '';
     }
 }
 ?>
@@ -78,10 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product</title>
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
