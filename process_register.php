@@ -23,6 +23,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = $_POST['phone_no'];
     $bio = $_POST['bio'];
     
+    // --- NEW: Backend Password Security Checks ---
+    
+    // 1. Check length (Minimum 5 characters)
+    if (strlen($pwd) < 5) {
+        die("<h1 style='text-align:center; margin-top:50px; color: #dc3545; font-family: sans-serif;'>Error: Enter at least 5 characters.</h1><div style='text-align:center;'><a href='register.php' style='padding: 10px 20px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px;'>Go Back</a></div>");
+    }
+
+    // 2. Check alphanumeric (At least one letter and one number)
+    if (!preg_match('/[a-zA-Z]/', $pwd) || !preg_match('/\d/', $pwd)) {
+        die("<h1 style='text-align:center; margin-top:50px; color: #dc3545; font-family: sans-serif;'>Error: Your password must contain at least one letter and one number.</h1><div style='text-align:center;'><a href='register.php' style='padding: 10px 20px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px;'>Go Back</a></div>");
+    }
+    
+    // ---------------------------------------------
+
     // Hash the password for security
     $hashed_password = password_hash($pwd, PASSWORD_DEFAULT);
 
@@ -41,12 +55,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 5. Execute and respond
     if ($stmt->execute()) {
         echo "<div style='text-align: center; margin-top: 50px; font-family: sans-serif;'>";
-        echo "<h1>Registration successful!</h1>";
-        echo "<p>Your account has been created in the live database.</p>";
+        echo "<h1 style='color: #198754;'>Registration successful!</h1>";
+        echo "<p>Your account has been created and is pending moderator approval.</p>";
+        echo "<br>";
         echo "<a href='login.php' style='padding: 10px 20px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px;'>Click here to login</a>";
         echo "</div>";
     } else {
-        echo "Error saving to database: " . $stmt->error;
+        echo "<div style='text-align: center; margin-top: 50px; font-family: sans-serif; color: #dc3545;'>";
+        echo "<h1>Error saving to database:</h1>";
+        echo "<p>" . $stmt->error . "</p>";
+        echo "</div>";
     }
 
     $stmt->close();

@@ -46,6 +46,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="password" class="form-label text-muted">Password</label>
                                     <input type="password" class="form-control" id="password" name="password" required>
+                                    <div id="passwordError" class="text-danger mt-1 fw-semibold" style="display: none; font-size: 0.9em;"></div>
                                 </div>
                             </div>
 
@@ -85,5 +86,58 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    const registerForm = document.querySelector('form');
+    const passwordInput = document.getElementById('password');
+    const errorDisplay = document.getElementById('passwordError');
+
+    // We package the checking logic into a reusable function
+    function checkPassword() {
+        const passwordValue = passwordInput.value;
+        let errorMessage = "";
+
+        // Skip validation if the box is completely empty (let HTML 'required' handle this)
+        if (passwordValue.length === 0) {
+            errorDisplay.style.display = "none";
+            passwordInput.classList.remove('is-invalid');
+            return true;
+        }
+
+        if (passwordValue.length < 5) {
+            errorMessage = "Enter at least 5 characters.";
+        } else if (!/[a-zA-Z]/.test(passwordValue) || !/\d/.test(passwordValue)) {
+            errorMessage = "Your password must contain at least one letter and one number.";
+        }
+
+        if (errorMessage !== "") {
+            errorDisplay.textContent = errorMessage;
+            errorDisplay.style.display = "block";
+            passwordInput.classList.add('is-invalid');
+            return false;
+        } else {
+            errorDisplay.style.display = "none";
+            passwordInput.classList.remove('is-invalid');
+            return true;
+        }
+    }
+
+    // Trigger 1: When the user clicks away from the password box (goes to next field)
+    passwordInput.addEventListener('blur', checkPassword);
+
+    // Trigger 2: As the user is actively typing (to clear the error instantly when they fix it)
+    passwordInput.addEventListener('input', function() {
+        // Only run the active check if they currently have an error showing
+        if (passwordInput.classList.contains('is-invalid')) {
+            checkPassword();
+        }
+    });
+
+    // Trigger 3: Final check right before the form submits
+    registerForm.addEventListener('submit', function(event) {
+        if (!checkPassword()) {
+            event.preventDefault(); // Stop submission if it fails the final check
+        }
+    });
+    </script>
 </body>
 </html>
