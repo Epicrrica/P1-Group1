@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,23 +9,7 @@
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" href="index.php">Game Console Exchange</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="product_list.php">Products</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Sell</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="login.php">Login</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <?php include "inc/navbar.inc.php"; ?>
 
     <div class="container mt-5">
         <div class="row justify-content-center">
@@ -35,6 +20,10 @@
                             <span class="bg-warning text-dark px-3 py-2 rounded-3 fs-3 fw-bold shadow-sm">GCE</span>
                         </div>
                         <h3 class="mb-4 text-center">Login to your account</h3>
+                        
+                        <?php if (isset($_GET['error'])): ?>
+                            <div class="alert alert-danger text-center"><?= htmlspecialchars($_GET['error']) ?></div>
+                        <?php endif; ?>
                         
                         <form action="process_login.php" method="POST">
                             <div class="mb-3">

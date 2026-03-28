@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,23 +9,7 @@
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" href="index.php">Game Console Exchange</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="product_list.php">Products</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Sell</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
-                    <li class="nav-item"><a class="nav-link" href="login.php">Login</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <?php include "inc/navbar.inc.php"; ?>
 
     <div class="container mt-5 mb-5">
         <div class="row justify-content-center">
@@ -91,12 +76,10 @@
     const passwordInput = document.getElementById('password');
     const errorDisplay = document.getElementById('passwordError');
 
-    // We package the checking logic into a reusable function
     function checkPassword() {
         const passwordValue = passwordInput.value;
         let errorMessage = "";
 
-        // Skip validation if the box is completely empty (let HTML 'required' handle this)
         if (passwordValue.length === 0) {
             errorDisplay.style.display = "none";
             passwordInput.classList.remove('is-invalid');
@@ -121,21 +104,16 @@
         }
     }
 
-    // Trigger 1: When the user clicks away from the password box (goes to next field)
     passwordInput.addEventListener('blur', checkPassword);
-
-    // Trigger 2: As the user is actively typing (to clear the error instantly when they fix it)
     passwordInput.addEventListener('input', function() {
-        // Only run the active check if they currently have an error showing
         if (passwordInput.classList.contains('is-invalid')) {
             checkPassword();
         }
     });
 
-    // Trigger 3: Final check right before the form submits
     registerForm.addEventListener('submit', function(event) {
         if (!checkPassword()) {
-            event.preventDefault(); // Stop submission if it fails the final check
+            event.preventDefault(); 
         }
     });
     </script>
