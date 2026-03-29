@@ -10,17 +10,15 @@ class OrderManager {
 
     public function updateFulfillment($purchase_id, $seller_username, $status, $tracking_number) {
         $sql = "UPDATE PRODUCT_PURCHASE 
-                SET order_status = :status, 
-                    tracking_number = :tracking 
-                WHERE purchase_id = :purchase_id 
-                AND seller_username = :seller_username";
+                SET order_status = ?, 
+                    tracking_number = ? 
+                WHERE purchase_id = ? 
+                AND seller_username = ?";
 
         $stmt = $this->db->prepare($sql);
         
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':tracking', $tracking_number);
-        $stmt->bindParam(':purchase_id', $purchase_id, PDO::PARAM_INT);
-        $stmt->bindParam(':seller_username', $seller_username);
+        // s = string, i = integer
+        $stmt->bind_param('ssis', $status, $tracking_number, $purchase_id, $seller_username);
 
         if ($stmt->execute()) {
             return true;
@@ -29,21 +27,23 @@ class OrderManager {
     }
 
     public function getOrderDetails($purchase_id) {
-        $sql = "SELECT * FROM PRODUCT_PURCHASE WHERE purchase_id = :purchase_id";
+        $sql = "SELECT * FROM PRODUCT_PURCHASE WHERE purchase_id = ?";
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':purchase_id', $purchase_id, PDO::PARAM_INT);
+        $stmt->bind_param('i', $purchase_id);
         $stmt->execute();
         
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
     }
     
     public function getOrdersBySeller($seller_username) {
-        $sql = "SELECT * FROM PRODUCT_PURCHASE WHERE seller_username = :seller_username ORDER BY updated_at DESC";
+        $sql = "SELECT * FROM PRODUCT_PURCHASE WHERE seller_username = ? ORDER BY updated_at DESC";
         $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':seller_username', $seller_username);
+        $stmt->bind_param('s', $seller_username);
         $stmt->execute();
         
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 }
 ?>
