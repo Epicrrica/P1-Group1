@@ -181,10 +181,30 @@ $mySales = $orderManager->getOrdersBySeller($username); // Fetch sales data
                                     <?php if (!empty($favoriteProducts)): ?>
                                         <div class="vstack gap-2">
                                             <?php foreach ($favoriteProducts as $favorite): ?>
-                                                <a href="product_detail.php?id=<?= (int) $favorite['product_id'] ?>" class="text-decoration-none">
+                                                <a href="product_detail.php?id=<?= (int) $purchase['product_id'] ?>" class="text-decoration-none">
                                                     <div class="border rounded px-3 py-2 profile-inline-card">
-                                                        <div class="fw-semibold"><?= htmlspecialchars($favorite['product_name']) ?></div>
-                                                        <small class="text-muted profile-inline-meta">$<?= number_format((float) $favorite['price'], 2) ?></small>
+                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                            <div class="fw-semibold"><?= htmlspecialchars($purchase['product_name']) ?></div>
+                                                            <?php 
+                                                                // Determine badge color based on status
+                                                                $statusColor = 'bg-secondary';
+                                                                $status = $purchase['order_status'] ?? 'Pending';
+                
+                                                                if ($status == 'Pending') $statusColor = 'text-bg-warning';
+                                                                elseif ($status == 'Processing') $statusColor = 'text-bg-info';
+                                                                elseif ($status == 'Shipped') $statusColor = 'text-bg-primary';
+                                                                elseif ($status == 'Delivered') $statusColor = 'text-bg-success';
+                                                                elseif ($status == 'Cancelled') $statusColor = 'text-bg-danger';
+                                                            ?>
+                                                            <span class="badge <?= $statusColor ?>"><?= htmlspecialchars($status) ?></span>
+                                                        </div>
+                                                        <small class="text-muted profile-inline-meta">$<?= number_format((float) $purchase['price_paid'], 2) ?></small>
+        
+                                                        <?php if (!empty($purchase['tracking_number'])): ?>
+                                                            <div class="mt-2 pt-1 border-top">
+                                                                <small class="text-muted">Tracking #: <strong class="text-dark"><?= htmlspecialchars($purchase['tracking_number']) ?></strong></small>
+                                                            </div>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </a>
                                             <?php endforeach; ?>
