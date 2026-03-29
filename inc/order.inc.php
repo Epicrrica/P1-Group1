@@ -37,7 +37,12 @@ class OrderManager {
     }
     
     public function getOrdersBySeller($seller_username) {
-        $sql = "SELECT * FROM PRODUCT_PURCHASE WHERE seller_username = ? ORDER BY updated_at DESC";
+        $sql = "SELECT pp.*, p.product_name 
+                FROM PRODUCT_PURCHASE pp
+                JOIN PRODUCT p ON pp.product_id = p.product_id
+                WHERE pp.seller_username = ? 
+                ORDER BY pp.updated_at DESC";
+                
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param('s', $seller_username);
         $stmt->execute();

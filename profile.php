@@ -132,7 +132,7 @@ $mySales = $orderManager->getOrdersBySeller($username); // Fetch sales data
                                             <table class="table table-sm align-middle mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th>Order #</th>
+                                                        <th>Item</th>
                                                         <th>Buyer</th>
                                                         <th>Status</th>
                                                         <th>Tracking #</th>
@@ -144,7 +144,10 @@ $mySales = $orderManager->getOrdersBySeller($username); // Fetch sales data
                                                     <tr>
                                                         <form method="POST" action="profile.php">
                                                             <input type="hidden" name="purchase_id" value="<?= $sale['purchase_id'] ?>">
-                                                            <td><?= $sale['purchase_id'] ?></td>
+                                                            <td>
+                                                                <span class="fw-semibold"><?= htmlspecialchars($sale['product_name']) ?></span><br>
+                                                                <small class="text-muted">Order #<?= $sale['purchase_id'] ?></small>
+                                                            </td>
                                                             <td><?= htmlspecialchars($sale['buyer_username']) ?></td>
                                                             <td>
                                                                 <select name="order_status" class="form-select form-select-sm">
