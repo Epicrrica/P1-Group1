@@ -47,6 +47,9 @@ if (isset($_SESSION['logged_in_user'])) {
                 <li class="nav-item">
                     <a class="nav-link <?= in_array($current_page, ['product_list.php', 'product_detail.php', 'edit_product.php']) ? 'active' : '' ?>" href="product_list.php">Products</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= ($current_page == 'about.php') ? 'active' : '' ?>" href="about.php">About</a>
+                </li>
                 
                 <?php if (isset($_SESSION['logged_in_user'])): ?>
                 <li class="nav-item">
