@@ -1,6 +1,7 @@
 <?php
 include "inc/db.inc.php";
 include "inc/product_images.inc.php";
+include "inc/marketplace.inc.php";
 
 $productId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
@@ -28,7 +29,14 @@ if (!$product) {
     die('Product not found.');
 }
 
+if (!can_delete_product($product)) {
+    $conn->close();
+    header("Location: product_detail.php?id={$productId}");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_or_reject();
     delete_all_product_images($conn, $productId, __DIR__);
 
     $deleteStmt = $conn->prepare("DELETE FROM PRODUCT WHERE product_id = ?");
@@ -74,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <li class="list-group-item"><strong>Price:</strong> $<?= number_format((float) $product['price'], 2) ?></li>
                             </ul>
                             <form method="post" class="d-flex gap-3">
+                                <?= csrf_input() ?>
                                 <button type="submit" class="btn btn-danger">Delete Product</button>
                                 <a href="product_detail.php?id=<?= $productId ?>" class="btn btn-outline-secondary">Cancel</a>
                             </form>

@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/inc/security.inc.php';
+security_bootstrap_session();
 if (!isset($_SESSION['temp_user'])) {
     header("Location: login.php");
     exit();
@@ -14,18 +15,21 @@ $method_text = ($_SESSION['two_fa_method'] === 'sms') ? "phone number" : "email 
     <meta charset="UTF-8">
     <title>Verify Login - Game Console Exchange</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg gce-navbar">
         <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold" href="index.php">Game Console Exchange</a>
+            <a class="navbar-brand fw-bold gce-brand" href="index.php">
+                <span class="navbar-title">Game Console Exchange</span>
+            </a>
         </div>
     </nav>
 
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-5">
-                <div class="card shadow-sm border-0">
+                <div class="card auth-card shadow-sm border-0">
                     <div class="card-body p-4 text-center">
                         <h3 class="mb-3">Two-Factor Authentication</h3>
                         <p class="text-muted mb-4">We just sent a 6-digit code to your <strong><?php echo $method_text; ?></strong> (<?php echo htmlspecialchars($_SESSION['temp_contact']); ?>). Please enter it below.</p>
@@ -35,6 +39,7 @@ $method_text = ($_SESSION['two_fa_method'] === 'sms') ? "phone number" : "email 
                         </div>
 
                         <form action="process_2fa.php" method="POST">
+                            <?= csrf_input() ?>
                             <div class="mb-4">
                                 <input type="number" class="form-control form-control-lg text-center fs-4" id="otp" name="otp" placeholder="000000" required>
                             </div>

@@ -1,13 +1,13 @@
 <?php
-session_start();
 include "inc/db.inc.php";
 include "inc/product_images.inc.php";
+include "inc/marketplace.inc.php";
 
 $search = trim($_GET['search'] ?? '');
 $category = trim($_GET['category'] ?? '');
 $sort = $_GET['sort'] ?? 'newest';
 
-$sql = "SELECT product_id, product_name, category, price, product_desc FROM PRODUCT WHERE 1=1";
+$sql = "SELECT product_id, product_name, category, price, product_desc, seller_username FROM PRODUCT WHERE 1=1";
 $types = '';
 $params = [];
 
@@ -53,15 +53,16 @@ if ($categoriesResult) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products - Game Console Exchange</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
     <?php include "inc/navbar.inc.php"; ?>
 
-    <main class="py-5">
+    <main class="py-5 product-page">
         <div class="container">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 product-page-header">
                 <div>
-                    <h1 class="h2 mb-1">Product Marketplace</h1>
+                    <h1 class="h2 mb-1">Your Very Own Marketplace</h1>
                     <p class="text-muted mb-0">Browse all listed consoles and gaming products.</p>
                 </div>
                 
@@ -70,7 +71,7 @@ if ($categoriesResult) {
                 <?php endif; ?>
             </div>
 
-            <div class="card shadow-sm border-0 mb-4">
+            <div class="card product-filter-card shadow-sm border-0 mb-4">
                 <div class="card-body p-4">
                     <form method="get" class="row g-3 align-items-end">
                         <div class="col-md-4">
@@ -81,7 +82,7 @@ if ($categoriesResult) {
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Category</label>
                             <div class="dropdown">
-                                <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start bg-white" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="categoryDropdownBtn">
+                                <button class="btn btn-outline-secondary product-filter-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="categoryDropdownBtn">
                                     <?= htmlspecialchars($category === '' ? 'All categories' : $category) ?>
                                 </button>
                                 <ul class="dropdown-menu w-100 p-2 shadow-sm">
@@ -119,23 +120,46 @@ if ($categoriesResult) {
                 <?php if ($result->num_rows > 0): ?>
                     <?php while ($product = $result->fetch_assoc()): ?>
                         <div class="col-md-6 col-lg-4">
-                            <div class="card h-100 shadow-sm border-0">
+                            <div class="card listing-card h-100 shadow-sm border-0">
                                 <div class="card-body d-flex flex-column">
                                     <h2 class="h5 mb-2 fw-bold"><?= htmlspecialchars($product['product_name']) ?></h2>
-                                    <p class="text-muted small mb-3"><?= htmlspecialchars($product['category']) ?></p>
+                                    <p class="product-category small mb-3"><?= htmlspecialchars($product['category']) ?></p>
                                     
                                     <?php $primaryImage = get_primary_product_image($conn, (int) $product['product_id']); ?>
                                     <?php if ($primaryImage): ?>
                                         <img src="<?= htmlspecialchars($primaryImage) ?>" class="card-img-top mb-3 rounded" alt="<?= htmlspecialchars($product['product_name']) ?>" style="height: 220px; object-fit: cover;">
                                     <?php endif; ?>
                                     
+                                    <?php $ratingSummary = get_product_rating_summary($conn, (int) $product['product_id']); ?>
                                     <p class="text-muted mb-3 flex-grow-1">
                                         <?= nl2br(htmlspecialchars($product['product_desc'] ?? 'No description provided.')) ?>
                                     </p>
+                                    <div class="product-meta small mb-3">
+                                        <div>Seller: <?= htmlspecialchars($product['seller_username'] ?? 'Unknown') ?></div>
+                                        <div>Favorites: <?= get_favorite_count($conn, (int) $product['product_id']) ?></div>
+                                        <div>
+                                            Rating:
+                                            <?php if ($ratingSummary['average_rating'] !== null): ?>
+                                                <?= number_format($ratingSummary['average_rating'], 1) ?>/5 (<?= $ratingSummary['review_count'] ?>)
+                                            <?php else: ?>
+                                                No reviews yet
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                     
                                     <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
-                                        <span class="badge text-bg-warning fs-5 px-3 py-2 fw-bold shadow-sm text-dark">$<?= number_format((float) $product['price'], 2) ?></span>
-                                        <a href="product_detail.php?id=<?= $product['product_id'] ?>" class="btn btn-outline-primary px-4 fw-semibold">View</a>
+                                        <span class="price-pill">$<?= number_format((float) $product['price'], 2) ?></span>
+                                        <div class="d-flex gap-2">
+                                            <?php if (isset($_SESSION['logged_in_user'])): ?>
+                                                <form method="post" action="toggle_favorite.php" class="m-0">
+                                                    <?= csrf_input() ?>
+                                                    <input type="hidden" name="product_id" value="<?= (int) $product['product_id'] ?>">
+                                                    <input type="hidden" name="redirect" value="product_list.php?<?= htmlspecialchars(http_build_query($_GET)) ?>">
+                                                    <button type="submit" class="btn btn-outline-secondary btn-sm">Favorite</button>
+                                                </form>
+                                            <?php endif; ?>
+                                            <a href="product_detail.php?id=<?= $product['product_id'] ?>" class="btn btn-primary btn-sm px-4 fw-semibold">View</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

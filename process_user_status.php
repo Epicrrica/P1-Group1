@@ -1,5 +1,4 @@
 <?php
-session_start();
 include "inc/db.inc.php";
 
 // CHANGE THIS LINE: use 'user_role' to match process_2fa.php
@@ -8,6 +7,7 @@ if (!isset($_SESSION['logged_in_user']) || $_SESSION['user_role'] !== 'moderator
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_or_reject();
     $target_user_id = $_POST['user_id'];
     $new_status = $_POST['action']; 
 

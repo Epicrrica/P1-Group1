@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/security.inc.php';
+
 function product_images_table_available(mysqli $conn): bool
 {
     static $available = null;
@@ -76,7 +78,6 @@ function save_uploaded_product_images(mysqli $conn, int $productId, array $files
         return [$savedPaths, $errors];
     }
 
-    $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
     $fileCount = count($files['name']);
     $existingSortOrder = 0;
 
@@ -100,12 +101,16 @@ function save_uploaded_product_images(mysqli $conn, int $productId, array $files
             continue;
         }
 
-        $originalName = $files['name'][$index] ?? '';
         $tmpName = $files['tmp_name'][$index] ?? '';
-        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-
-        if (!in_array($extension, $allowedExtensions, true)) {
-            $errors[] = 'Only JPG, PNG, and WEBP images are allowed.';
+        $singleFile = [
+            'error' => $files['error'][$index] ?? UPLOAD_ERR_NO_FILE,
+            'tmp_name' => $tmpName,
+            'size' => $files['size'][$index] ?? 0,
+        ];
+        $validationError = null;
+        $extension = validate_uploaded_image_file($singleFile, MAX_PRODUCT_IMAGE_BYTES, $validationError);
+        if ($extension === null) {
+            $errors[] = $validationError ?? 'One of the product images is invalid.';
             continue;
         }
 

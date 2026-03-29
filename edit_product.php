@@ -1,6 +1,7 @@
 <?php
 include "inc/db.inc.php";
 include "inc/product_images.inc.php";
+include "inc/marketplace.inc.php";
 
 $productId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
@@ -31,6 +32,12 @@ if (!$product) {
     die('Product not found.');
 }
 
+if (!can_edit_product($product) && current_user_role() !== 'moderator') {
+    $conn->close();
+    header("Location: product_detail.php?id={$productId}");
+    exit();
+}
+
 $productName = $product['product_name'];
 $category = $product['category'];
 $price = $product['price'];
@@ -38,6 +45,7 @@ $productDesc = $product['product_desc'];
 $productImages = get_product_images($conn, $productId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_image_id'])) {
+    verify_csrf_or_reject();
     $imageId = (int) $_POST['delete_image_id'];
     if (delete_product_image_by_id($conn, $productId, $imageId, __DIR__)) {
         header("Location: edit_product.php?id=" . $productId);
@@ -45,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_image_id'])) {
     }
     $errors[] = 'Could not delete the selected image.';
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_or_reject();
     $productName = trim($_POST['product_name'] ?? '');
     $category = trim($_POST['category'] ?? '');
     $price = trim($_POST['price'] ?? '');
@@ -146,6 +155,7 @@ $productImages = get_product_images($conn, $productId);
                     <div class="card border-0 shadow-sm">
                         <div class="card-body p-4">
                             <form method="post" enctype="multipart/form-data" class="row g-3">
+                                <?= csrf_input() ?>
                                 <div class="col-md-6">
                                     <label for="product_name" class="form-label">Product Name</label>
                                     <input type="text" class="form-control" id="product_name" name="product_name" value="<?= htmlspecialchars($productName) ?>" required>
@@ -196,6 +206,7 @@ $productImages = get_product_images($conn, $productId);
                                                     <img src="<?= htmlspecialchars($image['image_path']) ?>" class="card-img-top" alt="Product image" style="height: 180px; object-fit: cover;">
                                                     <div class="card-body p-3">
                                                         <form method="post">
+                                                            <?= csrf_input() ?>
                                                             <input type="hidden" name="delete_image_id" value="<?= (int) $image['image_id'] ?>">
                                                             <button type="submit" class="btn btn-outline-danger btn-sm w-100">Remove Image</button>
                                                         </form>

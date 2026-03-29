@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/inc/security.inc.php';
+security_bootstrap_session();
 
 // 1. Connect local PHP directly to the Live Google Cloud Database
 $servername = "35.212.172.254";       
@@ -15,6 +16,7 @@ if ($conn->connect_error) {
 
 // 2. Process the login attempt
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_or_reject();
     
     $login_user = $_POST['username'];
     $login_pwd  = $_POST['password'];
@@ -51,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['temp_user'] = $row['username'];
             $_SESSION['otp'] = $otp;
             $_SESSION['two_fa_method'] = $two_fa_method;
+            $_SESSION['otp_expires_at'] = time() + 300;
             
             if ($two_fa_method === 'sms') {
                 $_SESSION['temp_contact'] = $row['user_phone_no'];
@@ -88,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['temp_user'] = $row_mod['mod_name'];
                 $_SESSION['otp'] = $otp;
                 $_SESSION['two_fa_method'] = $two_fa_method;
+                $_SESSION['otp_expires_at'] = time() + 300;
                 
                 if ($two_fa_method === 'sms') {
                     $_SESSION['temp_contact'] = $row_mod['mod_phone_no'];

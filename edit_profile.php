@@ -1,10 +1,10 @@
 <?php
-session_start();
+include "inc/db.inc.php";
+
 if (!isset($_SESSION['logged_in_user'])) {
     header("Location: login.php");
     exit();
 }
-include "inc/db.inc.php";
 
 $username = $_SESSION['logged_in_user'];
 $success = '';
@@ -12,31 +12,38 @@ $error = '';
 
 // Process the form update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_or_reject();
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone_no']);
     $bio = trim($_POST['bio']);
     
     $imgData = null;
     if (isset($_FILES['profile_img']) && $_FILES['profile_img']['error'] === UPLOAD_ERR_OK) {
-        $imgData = file_get_contents($_FILES['profile_img']['tmp_name']);
+        $uploadError = null;
+        $imgData = uploaded_image_contents($_FILES['profile_img'], MAX_PROFILE_IMAGE_BYTES, $uploadError);
+        if ($imgData === null) {
+            $error = $uploadError ?? 'Profile image upload failed.';
+        }
     }
 
-    if ($imgData !== null) {
+    if ($error === '' && $imgData !== null) {
         // Update with new image
         $update_stmt = $conn->prepare("UPDATE USER SET user_email=?, user_phone_no=?, user_bio=?, user_profile_img=? WHERE username=?");
         $update_stmt->bind_param("sssss", $email, $phone, $bio, $imgData, $username);
-    } else {
+    } elseif ($error === '') {
         // Update without changing image
         $update_stmt = $conn->prepare("UPDATE USER SET user_email=?, user_phone_no=?, user_bio=? WHERE username=?");
         $update_stmt->bind_param("ssss", $email, $phone, $bio, $username);
     }
 
-    if ($update_stmt->execute()) {
-        $success = "Profile updated successfully!";
-    } else {
-        $error = "Error updating profile: " . $conn->error;
+    if ($error === '') {
+        if ($update_stmt->execute()) {
+            $success = "Profile updated successfully!";
+        } else {
+            $error = "Error updating profile: " . $conn->error;
+        }
+        $update_stmt->close();
     }
-    $update_stmt->close();
 }
 
 // Fetch current user data to populate the form
@@ -54,6 +61,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Profile - GCE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -79,6 +87,7 @@ $conn->close();
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4 p-md-5">
                         <form action="edit_profile.php" method="POST" enctype="multipart/form-data">
+                            <?= csrf_input() ?>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">

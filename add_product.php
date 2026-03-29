@@ -1,13 +1,13 @@
 <?php
-session_start();
+include "inc/db.inc.php";
+include "inc/product_images.inc.php";
+include "inc/marketplace.inc.php";
+
 // Lock out unauthenticated users securely
 if (!isset($_SESSION['logged_in_user'])) {
     header("Location: login.php");
     exit();
 }
-
-include "inc/db.inc.php";
-include "inc/product_images.inc.php";
 
 $errors = [];
 $successMessage = '';
@@ -18,6 +18,7 @@ $price = trim($_POST['price'] ?? '');
 $productDesc = trim($_POST['product_desc'] ?? '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_or_reject();
     if ($productName === '') $errors[] = 'Product name is required.';
     if ($category === '') $errors[] = 'Category is required.';
     if ($price === '' || !is_numeric($price) || (float) $price < 0) {
@@ -99,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-4">
                             <form method="post" enctype="multipart/form-data" class="row g-3">
+                                <?= csrf_input() ?>
                                 <div class="col-md-6">
                                     <label for="product_name" class="form-label">Product Name</label>
                                     <input type="text" class="form-control" id="product_name" name="product_name" value="<?= htmlspecialchars($productName) ?>" required>

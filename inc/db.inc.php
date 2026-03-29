@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/security.inc.php';
+security_bootstrap_session();
+
 $dbHost = '35.212.172.254';
 $dbName = 'project_information_db';
 $dbUser = 'group_login';

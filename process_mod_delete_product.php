@@ -1,5 +1,4 @@
 <?php
-session_start();
 include "inc/db.inc.php";
 include "inc/product_images.inc.php"; 
 
@@ -9,6 +8,7 @@ if (!isset($_SESSION['logged_in_user']) || $_SESSION['user_role'] !== 'moderator
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['product_id'])) {
+    verify_csrf_or_reject();
     $product_id_to_delete = $_POST['product_id'];
 
     delete_all_product_images($conn, $product_id_to_delete, __DIR__);
