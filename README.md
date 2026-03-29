@@ -3,7 +3,7 @@ All documentation for Web Systems & Technologies Project (Replace with Project N
 Contributors:
 1. Clarence
 2. Lewis
-3. 
+3. Kaixian
 4. 
 5. 
 
