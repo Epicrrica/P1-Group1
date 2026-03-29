@@ -1,6 +1,7 @@
 <?php
 include "inc/db.inc.php";
 include "inc/marketplace.inc.php";
+include "inc/order.inc.php";
 
 if (!isset($_SESSION['logged_in_user'])) {
     header("Location: login.php");
@@ -8,6 +9,18 @@ if (!isset($_SESSION['logged_in_user'])) {
 }
 
 $username = $_SESSION['logged_in_user'];
+
+// Initialize OrderManager and process updates
+$orderManager = new OrderManager($conn);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order'])) {
+    $purchase_id = $_POST['purchase_id'];
+    $new_status = $_POST['order_status'];
+    $tracking_number = $_POST['tracking_number'];
+    
+    if ($orderManager->updateFulfillment($purchase_id, $username, $new_status, $tracking_number)) {
+        $success_msg = "Order updated successfully!";
+    }
+}
 
 // Fetch user info
 $stmt = $conn->prepare("SELECT * FROM USER WHERE username = ?");
@@ -35,6 +48,7 @@ $profile_img = !empty($user['user_profile_img'])
 $favoriteProducts = get_user_favorites($conn, $username);
 $purchaseHistory = get_user_purchases($conn, $username);
 $myProducts = get_user_products($conn, $username);
+$mySales = $orderManager->getOrdersBySeller($username); // Fetch sales data
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -102,6 +116,59 @@ $myProducts = get_user_products($conn, $username);
                                         </div>
                                     <?php else: ?>
                                         <span class="text-muted">You have not listed any products yet.</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <h6 class="text-muted fw-bold mb-2">My Sales (Order Fulfillment)</h6>
+                                <div class="p-3 rounded profile-section-box">
+                                    <?php if (isset($success_msg)): ?>
+                                        <div class="alert alert-success py-2"><?= $success_msg ?></div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if (!empty($mySales)): ?>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm align-middle mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Order #</th>
+                                                        <th>Buyer</th>
+                                                        <th>Status</th>
+                                                        <th>Tracking #</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($mySales as $sale): ?>
+                                                    <tr>
+                                                        <form method="POST" action="profile.php">
+                                                            <input type="hidden" name="purchase_id" value="<?= $sale['purchase_id'] ?>">
+                                                            <td><?= $sale['purchase_id'] ?></td>
+                                                            <td><?= htmlspecialchars($sale['buyer_username']) ?></td>
+                                                            <td>
+                                                                <select name="order_status" class="form-select form-select-sm">
+                                                                    <option value="Pending" <?= $sale['order_status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                                                    <option value="Processing" <?= $sale['order_status'] == 'Processing' ? 'selected' : '' ?>>Processing</option>
+                                                                    <option value="Shipped" <?= $sale['order_status'] == 'Shipped' ? 'selected' : '' ?>>Shipped</option>
+                                                                    <option value="Delivered" <?= $sale['order_status'] == 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+                                                                    <option value="Cancelled" <?= $sale['order_status'] == 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                                                                </select>
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" name="tracking_number" class="form-control form-control-sm" placeholder="Tracking URL/No." value="<?= htmlspecialchars($sale['tracking_number'] ?? '') ?>">
+                                                            </td>
+                                                            <td>
+                                                                <button type="submit" name="update_order" class="btn btn-sm btn-primary">Save</button>
+                                                            </td>
+                                                        </form>
+                                                    </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-muted">You have no sales to fulfill yet.</span>
                                     <?php endif; ?>
                                 </div>
                             </div>
