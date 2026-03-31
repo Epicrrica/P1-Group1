@@ -298,7 +298,7 @@ function get_user_purchases(mysqli $conn, string $username): array
     }
 
     $stmt = $conn->prepare(
-        "SELECT pp.purchase_id, pp.price_paid, pp.purchased_at, p.product_id, p.product_name, p.category
+        "SELECT pp.purchase_id, pp.price_paid, pp.purchased_at, pp.order_status, pp.tracking_number, p.product_id, p.product_name, p.category
          FROM PRODUCT_PURCHASE pp
          JOIN PRODUCT p ON p.product_id = pp.product_id
          WHERE pp.buyer_username = ?
