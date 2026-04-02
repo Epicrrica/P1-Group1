@@ -35,6 +35,13 @@ if ($sort == 'name_asc') $prod_order = "ORDER BY product_name ASC";
     <?php include "inc/navbar.inc.php"; ?>
     
     <main class="container mt-5 moderator-dashboard">
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert alert-success">
+                <?php if ($_GET['success'] === 'status_updated'): ?>
+                    User account status updated successfully.
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
         
         <div class="card shadow-sm border-0 mb-5 moderator-filter-card">
             <div class="card-body p-4">
@@ -107,6 +114,32 @@ if ($sort == 'name_asc') $prod_order = "ORDER BY product_name ASC";
                 }
             } else {
                 echo "<div class='col-12'><div class='alert alert-info moderator-empty-state'>No active users found matching search.</div></div>";
+            }
+            ?>
+        </div>
+
+        <h2 class="mb-4 moderator-section-title">Manage Suspended Users</h2>
+        <div class="row mb-5">
+            <?php
+            $s_stmt = $conn->prepare("SELECT user_id, username, user_email FROM USER WHERE account_status = 'suspended' AND (username LIKE ? OR user_email LIKE ?) $user_order");
+            $s_stmt->bind_param("ss", $search_param, $search_param);
+            $s_stmt->execute();
+            $s_res = $s_stmt->get_result();
+
+            if ($s_res->num_rows > 0) {
+                while($row = $s_res->fetch_assoc()) {
+                    echo '<div class="col-md-4 mb-3">';
+                    echo '<div class="card p-3 shadow-sm border-0 moderator-item-card h-100">';
+                    echo '<h4 class="moderator-card-title">' . htmlspecialchars($row['username']) . '</h4>';
+                    echo '<p class="moderator-meta">' . htmlspecialchars($row['user_email']) . '</p>';
+                    echo '<form action="process_user_status.php" method="POST" class="d-flex gap-2 flex-wrap">';
+                    echo csrf_input();
+                    echo '<input type="hidden" name="user_id" value="' . $row['user_id'] . '">';
+                    echo '<button type="submit" name="action" value="approved" class="btn btn-outline-success btn-sm">Unsuspend User</button>';
+                    echo '</form></div></div>';
+                }
+            } else {
+                echo "<div class='col-12'><div class='alert alert-info moderator-empty-state'>No suspended users found matching search.</div></div>";
             }
             ?>
         </div>

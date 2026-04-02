@@ -25,6 +25,10 @@ security_bootstrap_session();
                         </div>
                         <h3 class="mb-4 text-center">Login to your account</h3>
                         
+                        <?php if (isset($_GET['success'])): ?>
+                            <div class="alert alert-success text-center"><?= htmlspecialchars($_GET['success']) ?></div>
+                        <?php endif; ?>
+
                         <?php if (isset($_GET['error'])): ?>
                             <div class="alert alert-danger text-center"><?= htmlspecialchars($_GET['error']) ?></div>
                         <?php endif; ?>
@@ -56,6 +60,10 @@ security_bootstrap_session();
                                 <button type="submit" class="btn btn-primary py-2">Login</button>
                             </div>
                         </form>
+
+                        <div class="mt-3 text-center">
+                            <a href="forgot_password.php" class="text-decoration-none">Forgot your password?</a>
+                        </div>
                         
                         <div class="mt-4 text-center">
                             <p class="text-muted">Don't have an account? <a href="register.php" class="text-decoration-none">Register here</a></p>
