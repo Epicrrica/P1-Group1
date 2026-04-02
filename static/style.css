@@ -456,6 +456,47 @@ small,
 
 .product-filter-toggle {
     background: rgba(255, 255, 255, 0.04);
+    color: #eef3ff;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.product-filter-toggle:hover,
+.product-filter-toggle:focus,
+.product-filter-toggle:active {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border-color: rgba(42, 161, 255, 0.32) !important;
+}
+
+.product-filter-card .dropdown-menu {
+    background: rgba(10, 16, 31, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.product-filter-card .dropdown-item {
+    color: #dbe6fb;
+    border-radius: 14px;
+}
+
+.product-filter-card .dropdown-item:hover,
+.product-filter-card .dropdown-item:focus,
+.product-filter-card .dropdown-item:active {
+    background: rgba(42, 161, 255, 0.14);
+    color: #ffffff;
+}
+
+.product-filter-card .dropdown-divider {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.product-filter-card #categorySearchInput {
+    background: rgba(255, 255, 255, 0.05);
+    color: #eef3ff;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.product-filter-card #categorySearchInput::placeholder {
+    color: #97a8c8;
 }
 
 .listing-card .card-img-top,
